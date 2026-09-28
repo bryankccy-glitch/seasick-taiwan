@@ -1,0 +1,13 @@
+tmp/
+.git/
+.codex/
+.agents/
+.sites-runtime/
+.openai/
+outputs/
+output/
+work/
+dist/
+.wrangler/
+*.pem
+.env*
