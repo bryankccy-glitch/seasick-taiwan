@@ -2,7 +2,8 @@
 
 台灣港口與海域導向的暈船風險與最佳出海時間決策平台。使用者可依港口、活動、船型、出海時間與個人敏感度，取得可解釋的相對風險分數、主要影響因子與舒適時段建議。
 
-- GitHub Pages：<https://bryankccy-glitch.github.io/seasick-taiwan/>
+- Live Demo（Vercel）：<https://seasick-taiwan.vercel.app/>
+- Source / Portfolio：<https://github.com/bryankccy-glitch/seasick-taiwan>
 - 正式分支：`main`
 - 安全政策：[SECURITY.md](./SECURITY.md)
 
@@ -20,12 +21,12 @@ npm run dev
 ```sh
 npm run lint
 npm run security:audit
-GITHUB_PAGES=true npm run build
+npm run build
 ```
 
 ## 資料與隱私
 
-- 現行 GitHub Pages 版本是純靜態前端，沒有內建秘密 API Key、帳號密碼或伺服器憑證。
+- 現行 Vercel 版本沒有把秘密 API Key、帳號密碼或伺服器憑證寫入前端。
 - 姓名、收藏與航海紀錄只存放在使用者自己的瀏覽器 `localStorage`，目前不會上傳到遠端伺服器。
 - 網站目前展示的是可解釋的相對風險決策模型與示範資料，不是醫療診斷，也不能取代中央氣象署公告、航港單位指示或船長判斷。
 - 若未來串接需要授權的海象 API，密鑰必須保存在伺服器端環境變數或 GitHub Secrets，前端只呼叫受控的後端代理端點。
@@ -40,7 +41,7 @@ git show <commit-id>
 git revert <commit-id>
 ```
 
-建議使用 `git revert` 建立一筆可稽核的撤銷紀錄，不直接刪除既有歷史。推送到 `main` 後，GitHub Actions 會自動建置並發布 GitHub Pages。
+建議使用 `git revert` 建立一筆可稽核的撤銷紀錄，不直接刪除既有歷史。正式網站由 Vercel 發布；GitHub 保留原始碼、變更紀錄與可回復的版本歷史。
 
 ## 專案範圍
 
@@ -49,7 +50,7 @@ git revert <commit-id>
 - `lib/ports.ts`：港口、航線與海域資料
 - `lib/risk.ts`：可解釋風險權重與時間序列模型
 - `lib/taiwan-map.ts`：台灣海岸與港口地圖資料
-- `.github/workflows/pages.yml`：GitHub Pages 自動部署
+- `vercel.json`：Vercel 發布設定
 
 ## 安全原則
 
