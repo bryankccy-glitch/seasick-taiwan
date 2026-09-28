@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     icon: `${basePath}/favicon.svg`,
     shortcut: `${basePath}/favicon.svg`,
   },
+  referrer: "strict-origin-when-cross-origin",
 };
 
 export default function RootLayout({
@@ -19,6 +20,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-Hant">
+      <head>
+        <meta
+          httpEquiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+        />
+      </head>
       <body className="antialiased">{children}</body>
     </html>
   );
