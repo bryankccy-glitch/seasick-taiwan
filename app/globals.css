@@ -161,3 +161,27 @@
   .brief-strip{margin-top:64px}
   .status-primary strong,.status-detail b{font-size:.72rem}
 }
+
+/* Let harbor names and risk readings take their own rows, including wrapped names. */
+.app-shell .port-rail .mini-port {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:8px;
+  min-height:140px;
+  padding:18px;
+  flex-shrink:0;
+}
+.app-shell .port-rail .mini-port>span { line-height:1.4; }
+.app-shell .port-rail .mini-port>strong {
+  margin:0;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.app-shell .port-rail .mini-port>div {
+  position:static;
+  margin-top:4px;
+  padding-right:24px;
+  min-height:26px;
+  line-height:1.2;
+}
