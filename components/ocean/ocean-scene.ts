@@ -19,10 +19,11 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     ((navigator as DeviceNavigator).deviceMemory ?? 8) <= 4;
   let reducedMotion = motionQuery.matches;
   let quality: Quality = "desktop";
-  let degraded = false;
+  let degradedQuality: Quality | null = null;
   let width = 1;
   let height = 1;
   let bounds = surface.getBoundingClientRect();
+  let canvasBounds = host.getBoundingClientRect();
   let boundsDirty = true;
   let scrollTarget = 0;
   let scroll = 0;
@@ -39,6 +40,8 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
   let transition = 0;
   let transitionTarget = 0;
   let pointerActive = false;
+  let ripplePending = false;
+  let hasWakePoint = false;
   let pointerStrength = 0;
   let rippleIndex = 0;
   let lastRippleTime = -1;
@@ -83,7 +86,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
   function configureQuality(next: Quality) {
     if (points.geometry.getAttribute("position") && next === quality) return;
     quality = next;
-    const [columns, rows] = quality === "desktop" ? [192, 120] : quality === "mobile" ? [96, 64] : [56, 44];
+    const [columns, rows] = quality === "desktop" ? [288, 180] : quality === "mobile" ? [144, 96] : [96, 72];
     const positions = new Float32Array(columns * rows * 3);
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < columns; col++) {
@@ -102,6 +105,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     renderer.setSize(width, height, false);
     ripples.forEach((ripple) => ripple.set(0, 0, -100, 0));
     rippleIndex = 0;
+    hasWakePoint = false;
     host.dataset.quality = quality;
     host.dataset.particles = String(columns * rows);
   }
@@ -114,6 +118,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
   function updateBounds() {
     if (!boundsDirty) return;
     bounds = surface.getBoundingClientRect();
+    canvasBounds = host.getBoundingClientRect();
     scrollTarget = THREE.MathUtils.clamp(-bounds.top / Math.max(1, bounds.height * .8), 0, 1);
     boundsDirty = false;
   }
@@ -139,17 +144,21 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     camera.lookAt(lookTarget);
     camera.updateMatrixWorld();
     if (pointerStrength > .01 && !reducedMotion) {
-      raycaster.setFromCamera(pointer, camera);
+      raycaster.setFromCamera(pointerTarget, camera);
       if (raycaster.ray.intersectPlane(plane, worldPointer)) {
         uniforms.uPointer.value.set(worldPointer.x, worldPointer.z);
         const distance = worldPointer.distanceTo(lastWakePoint);
-        if (quality !== "low" && pointerActive && elapsed - lastRippleTime > (mobile ? .16 : .065) && distance > .10 && worldPointer.length() < 35) {
-          // Fixed-size ring buffer: faster movement leaves a stronger, short water wake.
+        if (pointerActive &&
+            (ripplePending || (elapsed - lastRippleTime > (quality === "low" ? .32 : mobile ? .24 : .14) && distance > .35)) &&
+            Math.abs(worldPointer.x) < 24 && Math.abs(worldPointer.z + 6) < 22) {
+          // Entry creates a ring even before moving; subsequent rings follow the cursor.
           const count = mobile ? 2 : 8;
-          ripples[rippleIndex % count].set(worldPointer.x, worldPointer.z, elapsed, Math.min(mobile ? .32 : .8, .16 + distance * .5));
+          ripples[rippleIndex % count].set(worldPointer.x, worldPointer.z, elapsed, hasWakePoint ? Math.min(mobile ? .7 : 1.1, .65 + distance * .15) : (mobile ? .65 : 1));
           rippleIndex++;
           lastRippleTime = elapsed;
           lastWakePoint.copy(worldPointer);
+          hasWakePoint = true;
+          ripplePending = false;
         }
       }
     }
@@ -180,9 +189,10 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     sampleSeconds += dt;
     sampleFrames++;
     if (sampleSeconds > 3) {
-      if (sampleFrames / sampleSeconds < 32 && quality !== "low") {
-        degraded = true;
-        configureQuality("low");
+      if (sampleFrames / sampleSeconds < (quality === "desktop" ? 24 : 20) && quality !== "low") {
+        // A stable 30fps display is healthy; reduce density one tier at a time.
+        degradedQuality = quality === "desktop" ? "mobile" : "low";
+        configureQuality(degradedQuality);
       }
       sampleSeconds = 0;
       sampleFrames = 0;
@@ -208,7 +218,8 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     height = Math.max(1, host.clientHeight);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    configureQuality(degraded || weakDevice ? "low" : width < 720 || coarseQuery.matches ? "mobile" : "desktop");
+    configureQuality(degradedQuality === "low" || weakDevice ? "low" :
+      degradedQuality === "mobile" || width < 720 || coarseQuery.matches ? "mobile" : "desktop");
     updatePixelRatio();
     renderer.setSize(width, height, false);
     boundsDirty = true;
@@ -217,17 +228,18 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
   function onPointer(event: PointerEvent) {
     if (reducedMotion) return;
     updateBounds();
-    pointerTarget.set((event.clientX - bounds.left) / Math.max(1, bounds.width) * 2 - 1,
-      -(event.clientY - bounds.top) / Math.max(1, bounds.height) * 2 + 1);
+    pointerTarget.set((event.clientX - canvasBounds.left) / Math.max(1, canvasBounds.width) * 2 - 1,
+      -(event.clientY - canvasBounds.top) / Math.max(1, canvasBounds.height) * 2 + 1);
+    if (!pointerActive) ripplePending = true;
     pointerActive = true;
   }
-  function leave() { pointerActive = false; }
+  function leave() { pointerActive = false; ripplePending = false; hasWakePoint = false; }
   function onScroll() { boundsDirty = true; if (reducedMotion) resume(); }
   function onVisibility() { if (document.hidden) stop(); else { boundsDirty = true; resume(); } }
   function onMotionChange() {
     reducedMotion = motionQuery.matches;
     host.dataset.motion = reducedMotion ? "reduced" : "full";
-    pointerActive = false;
+    leave();
     pointerStrength = 0;
     pointer.set(0, 0);
     pointerTarget.set(0, 0);

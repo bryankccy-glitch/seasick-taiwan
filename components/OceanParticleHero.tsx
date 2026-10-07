@@ -71,10 +71,10 @@ export const OceanParticleHero = forwardRef<OceanParticleHeroHandle, { condition
 
     return <div ref={hostRef} className="ocean-particle-hero" aria-hidden="true" data-mode="fallback">
       <svg className="ocean-particle-fallback" viewBox="0 0 1200 640" preserveAspectRatio="none">
-        {Array.from({ length: 18 }, (_, row) => {
-          const y = 210 + row * 22;
+        {Array.from({ length: 26 }, (_, row) => {
+          const y = 210 + row * 15;
           return <path key={row} d={`M-80 ${y} Q150 ${y - 54} 350 ${y + 5} T780 ${y - 8} T1280 ${y + 18}`}
-            fill="none" stroke="currentColor" strokeWidth="1.2" strokeDasharray="1 8" opacity={.15 + row * .015} />;
+            fill="none" stroke="currentColor" strokeWidth="1.2" strokeDasharray="1 5" opacity={.15 + row * .01} />;
         })}
       </svg>
     </div>;

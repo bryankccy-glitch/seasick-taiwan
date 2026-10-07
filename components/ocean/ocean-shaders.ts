@@ -14,6 +14,7 @@ export const oceanVertexShader = /* glsl */ `
   varying float vDepth;
   varying float vEdge;
   varying float vInteraction;
+  varying float vRipple;
 
   float hash(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -42,25 +43,30 @@ export const oceanVertexShader = /* glsl */ `
     float base = (swell + n * uTurbulence * 1.8) * uWaveHeight * 2.15;
     float d = distance(water, uPointer);
     float interaction = -exp(-d * d * .32) * .22 * uPointerStrength;
+    float rippleLight = 0.;
     for (int i = 0; i < RIPPLE_COUNT; i++) {
       vec4 ripple = uRipples[i];
       float age = uTime - ripple.z;
       float radius = distance(water, ripple.xy);
-      float front = radius - age * 5.2;
-      float envelope = exp(-front * front * .9) * exp(-age * 2.1);
-      float rippleVisible = step(0., age) * (1. - step(1.7, age));
-      interaction += sin(front * 4.2) * envelope * ripple.w * .72 * rippleVisible;
+      float front = radius - age * 4.8;
+      float rippleVisible = step(0., age) * (1. - smoothstep(1.8, 2.4, age));
+      float fade = exp(-age * .85) * ripple.w * rippleVisible;
+      float crestRing = exp(-front * front * 3.2);
+      float trailingRing = exp(-(front + .85) * (front + .85) * 3.2);
+      interaction += (crestRing - trailingRing * .6) * fade * .85;
+      rippleLight += crestRing * fade;
     }
     p.y = (base + interaction) * (1. - uScroll * .7);
     p.y += sin(along * .24 - t) * uTransition * .18;
     vec4 mv = modelViewMatrix * vec4(p, 1.);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = clamp(76.0 / max(8., -mv.z), 1.8, 3.2) * uDpr;
+    gl_PointSize = clamp(76.0 / max(8., -mv.z), 1.8, 3.2) * uDpr * (1. + min(.5, rippleLight * .35));
     vHeight = base / max(.2, uWaveHeight);
     vDepth = -mv.z;
     vEdge = (1. - smoothstep(18., 24., abs(p.x))) *
             (1. - smoothstep(19., 25., abs(p.z + 6.)));
     vInteraction = min(.38, abs(interaction) * 1.4);
+    vRipple = min(1., rippleLight);
   }
 `;
 
@@ -71,6 +77,7 @@ export const oceanFragmentShader = /* glsl */ `
   varying float vDepth;
   varying float vEdge;
   varying float vInteraction;
+  varying float vRipple;
   void main() {
     // A tiny antialiased horizontal dash, without glow or a point texture.
     vec2 q = gl_PointCoord - .5;
@@ -79,6 +86,7 @@ export const oceanFragmentShader = /* glsl */ `
     vec3 trough = vec3(.30, .56, .59);
     vec3 peak = mix(vec3(.72, .92, .85), vec3(.74, .86, .81), uRisk / 100.);
     vec3 color = mix(trough, peak, crest);
+    color = mix(color, vec3(.72, 1., .95), vRipple * .8);
     float fog = 1. - smoothstep(32., 78., vDepth);
     float alpha = dash * vEdge * fog * min(.96, .66 + crest * .30 + vInteraction);
     gl_FragColor = vec4(color, alpha * (1. - uScroll));
