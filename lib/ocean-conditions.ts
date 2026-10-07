@@ -30,13 +30,13 @@ export function normalizeOceanConditions(input: Partial<OceanConditions>): Ocean
   };
 }
 
-export function oceanConditionsFromMarine(wave: number, wind: number, score: number): OceanConditions {
+export function oceanConditionsFromMarine(wave: number, wind: number, score: number, windDirection?: number): OceanConditions {
   return normalizeOceanConditions({
-    waveHeight: wave,
-    waveSpeed: 0.24 + wind * 0.028,
-    turbulence: 0.08 + score / 220,
+    waveHeight: wave * (0.55 + Math.max(0, Math.min(100, score)) / 100),
+    waveSpeed: 0.16 + wind * 0.022 + score * 0.003,
+    turbulence: 0.035 + Math.pow(score / 100, 1.5) * 0.75,
     // The demo data has no measured wind direction. Keep this visual default.
-    windDirection: 45,
+    windDirection: windDirection ?? 45,
     riskLevel: score,
   });
 }

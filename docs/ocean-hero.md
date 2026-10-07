@@ -1,6 +1,6 @@
 # Particle ocean Hero
 
-The home Hero keeps its existing search, harbor map, text, and cards. Only search selection waits for a 700ms water/camera transition before calling the existing `openPort`. Other navigation stays immediate and cancels pending selection. Reduced motion skips the delay.
+The home Hero keeps its existing search, harbor map, text, and cards. Only search selection waits for a 700ms water/camera transition before opening the controlled harbor detail panel. Other navigation stays immediate and cancels pending selection. Reduced motion skips the delay.
 
 ## Structure
 
@@ -24,11 +24,11 @@ oceanRef.current?.setOceanConditions({
 });
 ```
 
-Conditions damp toward the target and direction takes the shortest angular path. Wave phase is accumulated independently of speed, so changes do not jump. Current harbor data contains no measured wind direction: 45° is a visual default, not an observation. Selecting/searching a harbor uses the existing calculation and does not imply a new live API.
+Conditions damp toward the target and direction takes the shortest angular path. Wave phase is accumulated independently of speed, so changes do not jump. Current harbor data contains no measured wind direction: 45° is a visual default, not an observation. Selecting/searching a harbor and changing the shared timeline uses the existing calculation and does not imply a new live API.
 
 ## Interaction
 
-Passive pointer events on the Hero parent update a target. The frame loop damps the cursor, projects its position onto the water plane and applies subtle pressure. A fixed ring buffer holds eight ripple origins on desktop, two on mobile/low quality. Movement deposits short propagating ring waves; faster movement increases strength. They expire within 1.7 seconds. Camera parallax is small and disabled on mobile.
+Passive pointer events on the Hero parent update a target. The frame loop damps the cursor, projects its position onto the water plane and applies subtle pressure. A fixed ring buffer holds eight ripple origins on desktop, two on mobile; low quality does not generate wakes. Movement deposits short propagating ring waves; faster movement increases strength. They expire within 1.7 seconds. Camera parallax is small and disabled on mobile.
 
 Scroll events only invalidate cached bounds during normal animation. A frame reads them once, smoothly reduces amplitude/opacity and raises the camera. Intersection and visibility observers stop the frame loop offscreen or in a background tab.
 

@@ -143,7 +143,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
       if (raycaster.ray.intersectPlane(plane, worldPointer)) {
         uniforms.uPointer.value.set(worldPointer.x, worldPointer.z);
         const distance = worldPointer.distanceTo(lastWakePoint);
-        if (pointerActive && elapsed - lastRippleTime > (mobile ? .16 : .065) && distance > .10 && worldPointer.length() < 35) {
+        if (quality !== "low" && pointerActive && elapsed - lastRippleTime > (mobile ? .16 : .065) && distance > .10 && worldPointer.length() < 35) {
           // Fixed-size ring buffer: faster movement leaves a stronger, short water wake.
           const count = mobile ? 2 : 8;
           ripples[rippleIndex % count].set(worldPointer.x, worldPointer.z, elapsed, Math.min(mobile ? .32 : .8, .16 + distance * .5));

@@ -28,3 +28,14 @@ test("rougher marine readings produce stronger but still bounded visual conditio
   assert.equal(extreme.waveSpeed, 1.2);
   assert.equal(extreme.riskLevel, 100);
 });
+
+
+test("risk alone scales motion at identical wave and wind readings", () => {
+  const calm = oceanConditionsFromMarine(.7, 4, 10);
+  const rough = oceanConditionsFromMarine(.7, 4, 90);
+  assert.ok(rough.waveHeight > calm.waveHeight);
+  assert.ok(rough.waveSpeed > calm.waveSpeed);
+  assert.ok(rough.turbulence > calm.turbulence);
+  assert.equal(oceanConditionsFromMarine(.7, 4, 31, -90).windDirection, 270);
+  assert.equal(oceanConditionsFromMarine(.7, 4, 31).windDirection, 45);
+});
