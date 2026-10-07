@@ -12,6 +12,7 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel --ignore-pattern output --ignore-pattern tmp",
     "security:audit": "npm audit --omit=dev --audit-level=moderate",
     "typecheck": "tsc --noEmit --incremental false",
+    "test:product": "node --experimental-strip-types --test tests/user-storage.test.mjs",
     "test:ocean": "node --experimental-strip-types --test tests/ocean-conditions.test.mjs"
   },
   "dependencies": {
