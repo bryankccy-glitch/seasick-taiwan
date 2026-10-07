@@ -39,16 +39,10 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
   let sampleFrames = 0;
   let transition = 0;
   let transitionTarget = 0;
-  let pointerActive = false;
-  let ripplePending = false;
-  let hasWakePoint = false;
-  let pointerStrength = 0;
   let rippleIndex = 0;
-  let lastRippleTime = -1;
   const pointerTarget = new THREE.Vector2(0, 0);
   const pointer = new THREE.Vector2(0, 0);
   const worldPointer = new THREE.Vector3(0, 0, -5);
-  const lastWakePoint = new THREE.Vector3(0, 0, -5);
   const raycaster = new THREE.Raycaster();
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const lookTarget = new THREE.Vector3(0, 0, -7);
@@ -62,8 +56,6 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     uWaveHeight: { value: current.waveHeight },
     uTurbulence: { value: current.turbulence },
     uWind: { value: new THREE.Vector2(Math.cos(direction), Math.sin(direction)) },
-    uPointer: { value: new THREE.Vector2(0, -5) },
-    uPointerStrength: { value: 0 },
     uScroll: { value: 0 },
     uTransition: { value: 0 },
     uRisk: { value: current.riskLevel },
@@ -105,7 +97,6 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     renderer.setSize(width, height, false);
     ripples.forEach((ripple) => ripple.set(0, 0, -100, 0));
     rippleIndex = 0;
-    hasWakePoint = false;
     host.dataset.quality = quality;
     host.dataset.particles = String(columns * rows);
   }
@@ -136,38 +127,17 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     transition = THREE.MathUtils.lerp(transition, transitionTarget, blend);
     phase += reducedMotion ? 0 : dt * current.waveSpeed;
     pointer.lerp(pointerTarget, 1 - Math.exp(-dt * 10));
-    pointerStrength = THREE.MathUtils.lerp(pointerStrength, pointerActive && !reducedMotion ? 1 : 0, 1 - Math.exp(-dt * 6));
     const mobile = quality !== "desktop";
     const parallax = reducedMotion || mobile ? 0 : 1;
     camera.position.set(pointer.x * .65 * parallax + transition * .45, 15 + scroll * 3 + pointer.y * .35 * parallax, 24 + scroll * 2);
     lookTarget.set(pointer.x * .3 * parallax, 0, -7 - transition * 1.2);
     camera.lookAt(lookTarget);
     camera.updateMatrixWorld();
-    if (pointerStrength > .01 && !reducedMotion) {
-      raycaster.setFromCamera(pointerTarget, camera);
-      if (raycaster.ray.intersectPlane(plane, worldPointer)) {
-        uniforms.uPointer.value.set(worldPointer.x, worldPointer.z);
-        const distance = worldPointer.distanceTo(lastWakePoint);
-        if (pointerActive &&
-            (ripplePending || (elapsed - lastRippleTime > (quality === "low" ? .32 : mobile ? .24 : .14) && distance > .35)) &&
-            Math.abs(worldPointer.x) < 24 && Math.abs(worldPointer.z + 6) < 22) {
-          // Entry creates a ring even before moving; subsequent rings follow the cursor.
-          const count = mobile ? 2 : 8;
-          ripples[rippleIndex % count].set(worldPointer.x, worldPointer.z, elapsed, hasWakePoint ? Math.min(mobile ? .7 : 1.1, .65 + distance * .15) : (mobile ? .65 : 1));
-          rippleIndex++;
-          lastRippleTime = elapsed;
-          lastWakePoint.copy(worldPointer);
-          hasWakePoint = true;
-          ripplePending = false;
-        }
-      }
-    }
     uniforms.uTime.value = elapsed;
     uniforms.uPhase.value = phase;
     uniforms.uWaveHeight.value = current.waveHeight;
     uniforms.uTurbulence.value = current.turbulence;
     uniforms.uWind.value.set(Math.cos(direction), Math.sin(direction));
-    uniforms.uPointerStrength.value = reducedMotion ? 0 : pointerStrength;
     uniforms.uScroll.value = scroll;
     uniforms.uTransition.value = reducedMotion ? 0 : transition;
     uniforms.uRisk.value = current.riskLevel;
@@ -230,17 +200,32 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     updateBounds();
     pointerTarget.set((event.clientX - canvasBounds.left) / Math.max(1, canvasBounds.width) * 2 - 1,
       -(event.clientY - canvasBounds.top) / Math.max(1, canvasBounds.height) * 2 + 1);
-    if (!pointerActive) ripplePending = true;
-    pointerActive = true;
   }
-  function leave() { pointerActive = false; ripplePending = false; hasWakePoint = false; }
+  function leave() { pointerTarget.set(0, 0); }
+  function onClick(event: MouseEvent) {
+    if (reducedMotion || lost || disposed || event.button !== 0 || event.detail === 0) return;
+    // UI clicks and keyboard activation keep their existing behavior without water effects.
+    if (event.target instanceof Element && event.target.closest(
+      'button, input, select, textarea, a, [role="button"], [role="combobox"], [role="option"]',
+    )) return;
+    updateBounds();
+    const clickPoint = new THREE.Vector2(
+      (event.clientX - canvasBounds.left) / Math.max(1, canvasBounds.width) * 2 - 1,
+      -(event.clientY - canvasBounds.top) / Math.max(1, canvasBounds.height) * 2 + 1,
+    );
+    raycaster.setFromCamera(clickPoint, camera);
+    if (!raycaster.ray.intersectPlane(plane, worldPointer) ||
+        Math.abs(worldPointer.x) >= 24 || Math.abs(worldPointer.z + 6) >= 22) return;
+    const mobile = quality !== "desktop";
+    ripples[rippleIndex % (mobile ? 2 : 8)].set(worldPointer.x, worldPointer.z, elapsed, mobile ? .65 : 1);
+    rippleIndex++;
+  }
   function onScroll() { boundsDirty = true; if (reducedMotion) resume(); }
   function onVisibility() { if (document.hidden) stop(); else { boundsDirty = true; resume(); } }
   function onMotionChange() {
     reducedMotion = motionQuery.matches;
     host.dataset.motion = reducedMotion ? "reduced" : "full";
     leave();
-    pointerStrength = 0;
     pointer.set(0, 0);
     pointerTarget.set(0, 0);
     ripples.forEach((ripple) => ripple.set(0, 0, -100, 0));
@@ -272,6 +257,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
   resizeObserver.observe(host);
   intersectionObserver.observe(surface);
   surface.addEventListener("pointermove", onPointer, { passive: true });
+  surface.addEventListener("click", onClick, { passive: true });
   surface.addEventListener("pointerleave", leave, { passive: true });
   surface.addEventListener("pointerup", leave, { passive: true });
   surface.addEventListener("pointercancel", leave, { passive: true });
@@ -298,6 +284,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       surface.removeEventListener("pointermove", onPointer);
+      surface.removeEventListener("click", onClick);
       surface.removeEventListener("pointerleave", leave);
       surface.removeEventListener("pointerup", leave);
       surface.removeEventListener("pointercancel", leave);

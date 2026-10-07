@@ -4,8 +4,6 @@ export const oceanVertexShader = /* glsl */ `
   uniform float uWaveHeight;
   uniform float uTurbulence;
   uniform vec2 uWind;
-  uniform vec2 uPointer;
-  uniform float uPointerStrength;
   uniform float uScroll;
   uniform float uTransition;
   uniform float uDpr;
@@ -41,8 +39,7 @@ export const oceanVertexShader = /* glsl */ `
       swell += sin(along * .85 + n * 2.4 + t * .92) * .06;
     #endif
     float base = (swell + n * uTurbulence * 1.8) * uWaveHeight * 2.15;
-    float d = distance(water, uPointer);
-    float interaction = -exp(-d * d * .32) * .22 * uPointerStrength;
+    float interaction = 0.;
     float rippleLight = 0.;
     for (int i = 0; i < RIPPLE_COUNT; i++) {
       vec4 ripple = uRipples[i];

@@ -28,7 +28,7 @@ Conditions damp toward the target and direction takes the shortest angular path.
 
 ## Interaction
 
-Passive pointer events on the Hero parent update a target. The frame loop damps the cursor, projects its position onto the water plane and applies subtle pressure using the actual canvas bounds. A fixed ring buffer holds eight ripple origins on desktop, two on mobile and low quality. Entering the surface creates a ring even without further movement. Movement deposits propagating crest and trailing rings, with a brighter aqua crest and slightly larger particles. Rings expire within 2.4 seconds; movement deposits are throttled to 140ms on desktop and 240ms on mobile and 320ms at low quality. Camera parallax is small and disabled on mobile.
+Passive pointer movement only updates the small desktop camera parallax; it does not deform the water or create ripples. A primary click (or touch tap) on the water projects the click position onto the water plane using the actual canvas bounds and deposits one propagating ring. Keyboard activation and clicks on controls, links, search fields and harbor buttons are ignored. A fixed ring buffer holds eight ripple origins on desktop, two on mobile and low quality. Rings have a brighter aqua crest and slightly larger particles and expire within 2.4 seconds. Camera parallax is disabled on mobile.
 
 Scroll events only invalidate cached bounds during normal animation. A frame reads them once, smoothly reduces amplitude/opacity and raises the camera. Intersection and visibility observers stop the frame loop offscreen or in a background tab.
 
