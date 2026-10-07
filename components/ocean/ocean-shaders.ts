@@ -39,28 +39,28 @@ export const oceanVertexShader = /* glsl */ `
       n += (noise(water * .36 + n * 1.4 - t * .09) - .5) * .42;
       swell += sin(along * .85 + n * 2.4 + t * .92) * .06;
     #endif
-    float base = (swell + n * uTurbulence * 1.8) * uWaveHeight;
+    float base = (swell + n * uTurbulence * 1.8) * uWaveHeight * 1.55;
     float d = distance(water, uPointer);
-    float interaction = -exp(-d * d * .32) * .12 * uPointerStrength;
+    float interaction = -exp(-d * d * .32) * .22 * uPointerStrength;
     for (int i = 0; i < RIPPLE_COUNT; i++) {
       vec4 ripple = uRipples[i];
       float age = uTime - ripple.z;
       float radius = distance(water, ripple.xy);
       float front = radius - age * 5.2;
-      float envelope = exp(-front * front * .9) * exp(-age * 2.6);
+      float envelope = exp(-front * front * .9) * exp(-age * 2.1);
       float rippleVisible = step(0., age) * (1. - step(1.7, age));
-      interaction += sin(front * 4.2) * envelope * ripple.w * .30 * rippleVisible;
+      interaction += sin(front * 4.2) * envelope * ripple.w * .55 * rippleVisible;
     }
     p.y = (base + interaction) * (1. - uScroll * .7);
     p.y += sin(along * .24 - t) * uTransition * .18;
     vec4 mv = modelViewMatrix * vec4(p, 1.);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = clamp(44.0 / max(8., -mv.z), 1.0, 2.1) * uDpr;
+    gl_PointSize = clamp(68.0 / max(8., -mv.z), 1.6, 3.0) * uDpr;
     vHeight = base / max(.2, uWaveHeight);
     vDepth = -mv.z;
     vEdge = (1. - smoothstep(18., 24., abs(p.x))) *
             (1. - smoothstep(19., 25., abs(p.z + 6.)));
-    vInteraction = min(.22, abs(interaction));
+    vInteraction = min(.38, abs(interaction) * 1.4);
   }
 `;
 
@@ -76,11 +76,11 @@ export const oceanFragmentShader = /* glsl */ `
     vec2 q = gl_PointCoord - .5;
     float dash = 1. - smoothstep(.30, .50, length(q * vec2(1., 1.65)));
     float crest = smoothstep(-.55, .65, vHeight);
-    vec3 trough = vec3(.18, .39, .43);
-    vec3 peak = mix(vec3(.53, .76, .72), vec3(.58, .70, .68), uRisk / 100.);
+    vec3 trough = vec3(.26, .50, .53);
+    vec3 peak = mix(vec3(.64, .86, .80), vec3(.67, .80, .77), uRisk / 100.);
     vec3 color = mix(trough, peak, crest);
-    float fog = 1. - smoothstep(23., 67., vDepth);
-    float alpha = dash * vEdge * fog * (.34 + crest * .46 + vInteraction);
+    float fog = 1. - smoothstep(32., 78., vDepth);
+    float alpha = dash * vEdge * fog * min(.96, .54 + crest * .40 + vInteraction);
     gl_FragColor = vec4(color, alpha * (1. - uScroll));
   }
 `;

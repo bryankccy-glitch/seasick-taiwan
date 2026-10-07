@@ -36,8 +36,8 @@ Scroll events only invalidate cached bounds during normal animation. A frame rea
 
 | Tier | Grid | Points | DPR cap | Rendering |
 | --- | --- | --- | --- | --- |
-| Desktop | 176 × 112 | 19,712 | 1.5 | display refresh rate |
-| Mobile/coarse pointer | 80 × 64 | 5,120 | 1 | at most 30fps |
+| Desktop | 192 × 120 | 23,040 | 1.5 | display refresh rate |
+| Mobile/coarse pointer | 96 × 64 | 6,144 | 1 | at most 30fps |
 | Low capability / sustained slow frames | 56 × 44 | 2,464 | 0.8 | at most 30fps |
 
 Low capability uses hardware concurrency and device memory when exposed. A sustained measured frame rate below 32fps lowers quality; geometry is rebuilt only on tier changes, not per frame. ResizeObserver updates container size, camera aspect and breakpoint tier. Pixel ratio and pointer type are reevaluated on resize.

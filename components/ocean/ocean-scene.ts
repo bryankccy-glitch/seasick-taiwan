@@ -83,7 +83,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
   function configureQuality(next: Quality) {
     if (points.geometry.getAttribute("position") && next === quality) return;
     quality = next;
-    const [columns, rows] = quality === "desktop" ? [176, 112] : quality === "mobile" ? [80, 64] : [56, 44];
+    const [columns, rows] = quality === "desktop" ? [192, 120] : quality === "mobile" ? [96, 64] : [56, 44];
     const positions = new Float32Array(columns * rows * 3);
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < columns; col++) {
