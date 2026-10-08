@@ -2,7 +2,7 @@
 
 台灣港口與海域導向的暈船風險與最佳出海時間決策平台。使用者可依港口、活動、船型、出海時間與個人敏感度，取得可解釋的相對風險分數、主要影響因子與舒適時段建議。
 
-- Website（Vercel）：<https://sicksea-taiwan.vercel.app/>
+- Website（Vercel）：<https://seasick-taiwan.vercel.app/>
 - Source / Portfolio：<https://github.com/bryankccy-glitch/seasick-taiwan>
 - 正式分支：`main`
 - 安全政策：[SECURITY.md](./SECURITY.md)
@@ -21,19 +21,36 @@ npm run dev
 ```sh
 npm run lint
 npm run typecheck
-npm run test:forecast
-npm run test:product
-npm run test:ocean
+npm test
 npm run security:audit
 npm run build
 ```
 
+## 最新整合功能
+
+- 台灣 13 個港口的互動地圖、搜尋與港口／海域對應。
+- Open-Meteo 24h／72h 海況預報、即時刷新狀態與最佳出海時點。
+- 可解釋的暈船相對風險分數、波高／風速／週期與個人航程條件。
+- 深海／晨光雙主題、中英切換、收藏港口與航海紀錄。
+- Supabase 姓名＋密碼註冊／登入；名稱正規化後不可重複。
+- 收藏、航海紀錄、語言與最後港口依使用者帳號同步。
+
 ## 資料與隱私
 
-- 現行 Vercel 版本沒有把秘密 API Key、帳號密碼或伺服器憑證寫入前端。
-- 姓名、收藏與航海紀錄只存放在使用者自己的瀏覽器 `localStorage`，目前不會上傳到遠端伺服器。
+- Supabase URL、secret key 與登入簽章密鑰只存在 Vercel 伺服器環境變數，不會進入前端 bundle 或 Git。
+- 密碼只保存 bcrypt 雜湊，不保存或回傳明文；Session 使用 `HttpOnly`、`SameSite=Lax`、正式環境 `Secure` Cookie。
+- 收藏港口、航海紀錄、語言與最後港口存放在 Supabase，並以伺服器驗證的使用者 ID 隔離。
+- Supabase 表格啟用 RLS，`anon` 與 `authenticated` 沒有直接讀寫權限；只有後端 `service_role` 能呼叫受控 RPC。
 - 24h / 72h 海況來自 Open-Meteo 公開預報 API；缺漏與失敗不使用模擬資料補值。暈船分數是本站依預報與航程計算的相對指數，不是官方指數或機率。
-- 若未來串接需要授權的海象 API，密鑰必須保存在伺服器端環境變數或 GitHub Secrets，前端只呼叫受控的後端代理端點。
+- 任何需要授權的 API 密鑰都必須留在伺服器端環境變數；前端只呼叫受控的後端端點。
+
+## 帳號與 Supabase
+
+- `/api/auth/register`：建立唯一姓名帳號並寫入密碼雜湊與初始狀態。
+- `/api/auth/login`、`/api/auth/logout`、`/api/auth/me`：登入、登出與 Session 驗證。
+- `/api/state`：同步收藏、航海紀錄與偏好設定。
+- `supabase/migrations/`：帳號、狀態、使用事件、RLS 與原子 RPC schema。
+- 伺服器需要 `SUPABASE_URL`、`SUPABASE_SECRET_KEY`、`AUTH_SECRET`；不得使用 `NEXT_PUBLIC_*` 保存秘密值。
 
 ## 海況 API
 
@@ -41,7 +58,7 @@ npm run build
 - 目前支援地圖上已有座標的 13 個港口；其他港口顯示無預報。潮汐與信心百分比尚無資料。
 - Open-Meteo 免費端點限非商業用途；商業營運需使用付費方案。
 - 此 API 需要 Next.js 伺服器，請部署至 Vercel；GitHub Pages 無法提供動態 API。
-- 新 Vercel 專案目前採 CLI 手動部署，GitHub push 不會自動發布。
+- GitHub 保存正式 `main` 原始碼與版本紀錄；公開站由 Vercel 執行 Next.js server routes。
 - 資料處理與缺值策略見 [docs/marine-forecast.md](docs/marine-forecast.md)。
 
 ## 版本紀錄與回復
@@ -60,9 +77,12 @@ git revert <commit-id>
 
 - `app/`：SeaSick Taiwan 操作介面與樣式
 - `components/ui/`：實際使用的互動元件
+- `components/auth-screen.tsx`：登入／註冊介面
 - `lib/ports.ts`：港口、航線與海域資料
 - `lib/risk.ts`：可解釋風險權重與時間序列模型
 - `lib/taiwan-map.ts`：台灣海岸與港口地圖資料
+- `lib/server/`：Session、Supabase 存取、安全檢查與狀態驗證
+- `supabase/migrations/`：資料表、RLS 與 RPC migration
 - `vercel.json`：Vercel 發布設定
 
 ## 安全原則
