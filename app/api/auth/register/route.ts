@@ -4,11 +4,11 @@ import { z } from "zod";
 import { createSession } from "@/lib/server/auth";
 import { createAccount } from "@/lib/server/database";
 import { noStoreJson, normalizeUsername, passwordSchema, rateLimit, requestIsSameOrigin, usernameSchema } from "@/lib/server/security";
-import { defaultUserState, userStateSchema } from "@/lib/server/user-state";
+import { defaultUserState } from "@/lib/server/user-state";
 import { isUniqueConstraintError } from "@/lib/supabase-server-config";
 
 export const runtime = "nodejs";
-const registerSchema = z.object({ username:usernameSchema, password:passwordSchema, initialState:userStateSchema.optional() });
+const registerSchema = z.object({ username:usernameSchema, password:passwordSchema });
 
 export async function POST(request:Request) {
   if (!requestIsSameOrigin(request)) return noStoreJson({ error:"請重新整理頁面後再試一次" }, { status:403 });
@@ -20,7 +20,7 @@ export async function POST(request:Request) {
     const loginKey = normalizeUsername(username);
     const passwordHash = await bcrypt.hash(parsed.data.password,12);
     const userId = randomUUID();
-    const state = parsed.data.initialState ?? defaultUserState;
+    const state = defaultUserState;
     try {
       await createAccount({ id:userId, username, loginKey, passwordHash, state });
     } catch (error) {
