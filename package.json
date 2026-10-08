@@ -13,7 +13,8 @@
     "security:audit": "npm audit --omit=dev --audit-level=moderate",
     "typecheck": "tsc --noEmit --incremental false",
     "test:product": "node --experimental-strip-types --test tests/user-storage.test.mjs",
-    "test:ocean": "node --experimental-strip-types --test tests/ocean-conditions.test.mjs"
+    "test:ocean": "node --experimental-strip-types --test tests/ocean-conditions.test.mjs",
+    "test:forecast": "node --experimental-strip-types --test tests/marine-forecast.test.mjs"
   },
   "dependencies": {
     "class-variance-authority": "0.7.1",

@@ -2,7 +2,7 @@
 
 台灣港口與海域導向的暈船風險與最佳出海時間決策平台。使用者可依港口、活動、船型、出海時間與個人敏感度，取得可解釋的相對風險分數、主要影響因子與舒適時段建議。
 
-- Live Demo（Vercel）：<https://seasick-taiwan.vercel.app/>
+- Website（Vercel）：<https://sicksea-taiwan.vercel.app/>
 - Source / Portfolio：<https://github.com/bryankccy-glitch/seasick-taiwan>
 - 正式分支：`main`
 - 安全政策：[SECURITY.md](./SECURITY.md)
@@ -20,6 +20,10 @@ npm run dev
 
 ```sh
 npm run lint
+npm run typecheck
+npm run test:forecast
+npm run test:product
+npm run test:ocean
 npm run security:audit
 npm run build
 ```
@@ -28,8 +32,17 @@ npm run build
 
 - 現行 Vercel 版本沒有把秘密 API Key、帳號密碼或伺服器憑證寫入前端。
 - 姓名、收藏與航海紀錄只存放在使用者自己的瀏覽器 `localStorage`，目前不會上傳到遠端伺服器。
-- 網站目前展示的是可解釋的相對風險決策模型與示範資料，不是醫療診斷，也不能取代中央氣象署公告、航港單位指示或船長判斷。
+- 24h / 72h 海況來自 Open-Meteo 公開預報 API；缺漏與失敗不使用模擬資料補值。暈船分數是本站依預報與航程計算的相對指數，不是官方指數或機率。
 - 若未來串接需要授權的海象 API，密鑰必須保存在伺服器端環境變數或 GitHub Secrets，前端只呼叫受控的後端代理端點。
+
+## 海況 API
+
+- `/api/marine` 在伺服器端取得海況與風場，快取 10 分鐘。
+- 目前支援地圖上已有座標的 13 個港口；其他港口顯示無預報。潮汐與信心百分比尚無資料。
+- Open-Meteo 免費端點限非商業用途；商業營運需使用付費方案。
+- 此 API 需要 Next.js 伺服器，請部署至 Vercel；GitHub Pages 無法提供動態 API。
+- 新 Vercel 專案目前採 CLI 手動部署，GitHub push 不會自動發布。
+- 資料處理與缺值策略見 [docs/marine-forecast.md](docs/marine-forecast.md)。
 
 ## 版本紀錄與回復
 

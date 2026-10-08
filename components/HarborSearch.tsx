@@ -1,4 +1,5 @@
 "use client";
+import { formatForecastTime } from "@/lib/marine-forecast";
 import { useId, useMemo, useState } from "react";
 import { ChevronRight, MapPin, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,7 @@ type Props = {language:Language;query:string;setQuery:(value:string)=>void;open:
 export function HarborSearch({language,query,setQuery,open,setOpen,results,onSelect,placeholder,riskInput,timeIndex,suggestions=true}:Props) {
   const id=useId(); const [active,setActive]=useState(-1); const zh=language==="zh";
   const expanded=suggestions&&open;
-  const readings=useMemo(()=>results.map(port=>{const timeline=buildTimeline({port,...riskInput});return {port,current:timeline[timeIndex],best:timeline.reduce((a,b)=>b.score<a.score?b:a,timeline[0])};}),[results,riskInput,timeIndex]);
+  const readings=useMemo(()=>results.map(port=>{const timeline=buildTimeline({port,...riskInput});return {port,current:timeline[timeIndex],best:timeline.length?timeline.reduce((a,b)=>b.score<a.score?b:a,timeline[0]):null};}),[results,riskInput,timeIndex]);
   function select(index:number){if(results[index])onSelect(results[index].id);setOpen(false);setActive(-1);}
   return <div className="app-search" role="search" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget as Node|null)){setOpen(false);setActive(-1);}}}>
     <Search aria-hidden="true"/>
@@ -22,7 +23,7 @@ export function HarborSearch({language,query,setQuery,open,setOpen,results,onSel
     {query&&<button type="button" aria-label={zh?"清除搜尋":"Clear search"} className="clear-search" onClick={()=>{setQuery("");setActive(-1);}}><X/></button>}
     {expanded&&<div className="search-results" id={`${id}-results`} role="listbox" aria-label={zh?"符合的港口":"Matching harbors"}>
       {readings.length?readings.map(({port,current,best},index)=><button type="button" role="option" tabIndex={-1} aria-selected={active===index} id={`${id}-${port.id}`} key={port.id} onPointerDown={event=>event.preventDefault()} onClick={()=>select(index)}>
-        <MapPin aria-hidden="true"/><span><strong>{label(port,language)}</strong><small>{areaLabel(port,language)}</small></span><div className="search-metrics"><b className={riskLevel(current.score)}>Risk {current.score} / 100 · {zh?({low:"低",medium:"中",high:"高",veryHigh:"很高"}[riskLevel(current.score)]):riskLevel(current.score).toUpperCase()}</b><small>{zh?"波高":"Wave"} {current.marine.wave.toFixed(1)} m · {zh?"最佳":"Best"} {best.index>=6?"+1 ":""}{String(best.marine.hour).padStart(2,"0")}:00</small></div><ChevronRight aria-hidden="true"/>
+        <MapPin aria-hidden="true"/><span><strong>{label(port,language)}</strong><small>{areaLabel(port,language)}</small></span><div className="search-metrics">{current&&best?<><b className={riskLevel(current.score)}>Risk {current.score} / 100 · {zh?({low:"低",medium:"中",high:"高",veryHigh:"很高"}[riskLevel(current.score)]):riskLevel(current.score).toUpperCase()}</b><small>{zh?"波高":"Wave"} {current.marine.wave.toFixed(1)} m · {zh?"最佳":"Best"} {formatForecastTime(best.marine.time,language)}</small></>:<small>{zh?"無預報資料":"Forecast unavailable"}</small>}</div><ChevronRight aria-hidden="true"/>
       </button>):<p role="status">{zh?"找不到港口，試試其他名稱或海域。":"No matching harbor. Try another name or sea area."}</p>}
     </div>}
   </div>;

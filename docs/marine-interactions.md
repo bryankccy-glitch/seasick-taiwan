@@ -27,3 +27,6 @@ No new dependency was added for the map, panel or timeline. They reuse Radix, Lu
 Lint, typecheck, production builds and four ocean parameter tests pass. Browser checks cover mobile sheet, desktop panel, marker-to-marker switching, selected time values, keyboard slider operation, 72h unavailable state, search transition, panel dismissal and the existing voyage/risk analysis. The same Radix slider handles pointer dragging and touch; physical mobile touch and device thermal behavior still require device testing.
 
 No harbor comparison, multi-harbor view, comparison table or Shift-click comparison was added. No production deployment or authentication code was changed. The live Vercel website has previously shown authentication UI not present in this repository branch; preservation of that separate deployed version cannot be verified from these sources.
+# Current data source
+
+The live forecast integration supersedes the demo timeline described below. See [marine-forecast.md](marine-forecast.md). The former diurnal simulation is removed; both ranges use real API values.

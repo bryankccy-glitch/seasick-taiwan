@@ -47,3 +47,11 @@
 @media(min-width:701px) {
   .marine-map .harbor-node[data-port="magong"]>div { left:24px; right:auto; top:-12px; }
 }
+
+/* Real forecast dates remain readable in both 24h and 72h ranges. */
+.marine-timeline .marine-time-ticks { grid-template-columns:repeat(4,minmax(0,1fr)); gap:4px; }
+.port-detail-panel .marine-timeline .marine-time-ticks { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.departure-ticks { grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.forecast-attribution { max-width:1200px; margin:24px auto 100px; padding:0 24px; color:#8da7ac; font-size:12px; line-height:1.8; }
+.forecast-attribution a { text-decoration:underline; }
+.harbor-node.unavailable i { background:#789296; }
