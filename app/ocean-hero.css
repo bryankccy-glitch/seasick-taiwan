@@ -1,0 +1,63 @@
+/* The canvas listens through its parent; it never consumes UI input. */
+.home-stage:has(.ocean-particle-hero) { position:relative; isolation:isolate; }
+.home-stage > .home-intro { position:relative; z-index:3; }
+.home-stage > .marine-map { z-index:1; }
+.ocean-particle-hero {
+  position:absolute;
+  z-index:0;
+  inset:0 -4%;
+  overflow:hidden;
+  pointer-events:none;
+  color:#82b6b2;
+  contain:layout paint;
+  mask-image:linear-gradient(to bottom,transparent 4%,transparent 6%,#000 23%,#000 79%,transparent 100%);
+}
+.ocean-particle-hero::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(105deg,rgba(5,9,13,.16),transparent 58%);
+  pointer-events:none;
+}
+.ocean-particle-canvas,.ocean-particle-fallback {
+  position:absolute;
+  width:100%;
+  height:100%;
+  inset:0;
+  display:block;
+  pointer-events:none;
+}
+.ocean-particle-hero[data-mode="webgl"] .ocean-particle-fallback { display:none; }
+.ocean-particle-hero[data-mode="fallback"] .ocean-particle-canvas { visibility:hidden; }
+@media(max-width:900px) {
+  .ocean-particle-hero { inset:0 -2%; mask-image:linear-gradient(to bottom,transparent 8%,#000 28%,#000 78%,transparent 100%); }
+}
+@media(max-width:700px) {
+  .ocean-particle-hero { inset:0 -4%; mask-image:linear-gradient(to bottom,transparent 6%,#000 23%,#000 82%,transparent 100%); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .ocean-particle-hero { transition:none; }
+}
+
+/* Container units keep the full Chinese phrase on one line at any breakpoint. */
+.home-stage .home-intro { container-type:inline-size; }
+.home-stage .home-intro h1 { line-height:1.25; letter-spacing:0; }
+.home-stage .home-intro h1 .hero-greeting {
+  display:block;
+  margin:0;
+  font-family:var(--font-copy);
+  font-size:clamp(1.5rem,11.1cqi,3.75rem);
+  font-weight:410;
+  letter-spacing:normal;
+  line-height:1.08;
+  white-space:nowrap;
+  color:#e4f0eb;
+  text-shadow:0 2px 18px #020d12;
+}
+.home-stage .home-intro h1 .hero-greeting:lang(en) {
+  font-family:"Inter",system-ui,sans-serif;
+  font-size:clamp(1.8rem,8cqi,3.2rem);
+  font-weight:450;
+  letter-spacing:-.025em;
+  white-space:normal;
+}

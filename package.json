@@ -10,7 +10,10 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern .vercel --ignore-pattern output --ignore-pattern tmp",
-    "security:audit": "npm audit --omit=dev --audit-level=moderate"
+    "security:audit": "npm audit --omit=dev --audit-level=moderate",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test:product": "node --experimental-strip-types --test tests/user-storage.test.mjs",
+    "test:ocean": "node --experimental-strip-types --test tests/ocean-conditions.test.mjs"
   },
   "dependencies": {
     "class-variance-authority": "0.7.1",
@@ -21,13 +24,15 @@
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "recharts": "^3.8.0",
-    "tailwind-merge": "3.6.0"
+    "tailwind-merge": "3.6.0",
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@types/three": "0.186.0",
     "eslint": "9.39.4",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "4.2.1",
