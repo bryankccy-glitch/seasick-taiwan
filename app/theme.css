@@ -1,0 +1,69 @@
+/* Ocean Dark uses the existing declaration fallbacks, preserving its palette. */
+:root { color-scheme:dark; }
+:root[data-theme="light"] {
+  color-scheme:light;
+  --background:#f6fafc; --foreground:#17324d;
+  --card:#fff; --card-foreground:#17324d; --popover:#fff; --popover-foreground:#17324d;
+  --primary:#155e80; --primary-foreground:#fff;
+  --secondary:#edf5f8; --secondary-foreground:#17324d;
+  --muted:#edf5f8; --muted-foreground:#536d80;
+  --accent:#ddf1f7; --accent-foreground:#155e80;
+  --destructive:#ad3634; --border:#dce8ee; --input:#c7dbe4; --ring:#247ba0;
+  --ocean-surface:#f9fcfd; --ocean-text:#17324d; --ocean-secondary:#536d80;
+  --ocean-accent:#155e80; --ocean-on-accent:#fff; --ocean-tint:#ddf1f780;
+  --ocean-border:#c7dbe4; --ocean-shadow:#194b690d; --ocean-land:#f9fcf9;
+  --risk-low:#16734f; --risk-medium:#866000; --risk-high:#b03934; --risk-very-high:#99344b;
+  --chart-accent:#247ba0; --chart-grid:#dce8ee; --chart-label:#536d80; --chart-surface:#fff;
+}
+.theme-toggle { position:relative; min-width:44px; min-height:44px; justify-content:center; }
+.theme-toggle svg { position:absolute; transition:opacity 250ms ease,transform 250ms ease; }
+.theme-moon { opacity:0; transform:translateY(4px); }
+[data-theme="light"] .theme-sun { opacity:0; transform:translateY(-4px); }
+[data-theme="light"] .theme-moon { opacity:1; transform:translateY(0); }
+.theme-toggle:focus-visible { outline:2px solid var(--ring); outline-offset:3px; }
+body,.app-shell,[role="dialog"] {
+  transition-property:background-color,color,border-color,box-shadow;
+  transition-duration:250ms; transition-timing-function:ease;
+}
+[data-theme="light"] .app-shell,
+[data-theme="light"] .app-shell:is(.risk-high,.risk-veryHigh) {
+  background:linear-gradient(155deg,#f8fcfe,#edf6f9 60%,#f6fafc);
+}
+[data-theme="light"] .home-stage { --font-copy:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif; }
+[data-theme="light"] :is(.primary-condition,.trip-builder,.risk-hero,.best-window,.timeline-section,.profile-card,.port-row-card,.mini-port,.search-results,.mobile-popover,.port-detail-panel) {
+  background:#fff; box-shadow:0 4px 20px #194b690d;
+}
+[data-theme="light"] .home-stage .app-search input { background:#fff; }
+[data-theme="light"] .ocean-dialog { background:#fff!important; }
+[data-theme="light"] .score-side { background:#edf5f8; }
+[data-theme="light"] :is(.analyze-primary,.panel-analyze) { background:#155e80!important; color:#fff!important; }
+[data-theme="light"] :is(.choice,.pill,.filter-row button,.forecast-ranges button,.marine-time-ticks button,.departure-ticks button).active,
+[data-theme="light"] .forecast-ranges button[aria-pressed="true"] { background:#ddf1f7; color:#155e80; }
+[data-theme="light"] .low { color:var(--risk-low)!important; }
+[data-theme="light"] .medium { color:var(--risk-medium)!important; }
+[data-theme="light"] .high { color:var(--risk-high)!important; }
+[data-theme="light"] .veryHigh { color:var(--risk-very-high)!important; }
+[data-theme="light"] .panel-risk { --risk-color:var(--risk-low); }
+[data-theme="light"] .panel-risk.medium { --risk-color:var(--risk-medium); }
+[data-theme="light"] .panel-risk.high { --risk-color:var(--risk-high); }
+[data-theme="light"] .panel-risk.veryHigh { --risk-color:var(--risk-very-high); }
+[data-theme="light"] .harbor-node.low>i { background:var(--risk-low); }
+[data-theme="light"] .harbor-node.medium>i { background:var(--risk-medium); }
+[data-theme="light"] .harbor-node.high>i { background:var(--risk-high); }
+[data-theme="light"] .harbor-node.veryHigh>i { background:var(--risk-very-high); }
+[data-theme="light"] .harbor-node.selected>i { outline-color:#155e80; }
+[data-theme="light"] .harbor-node>span { opacity:1; text-shadow:none; }
+[data-theme="light"] .taiwan-shape,[data-theme="light"] .taiwan-island { fill:var(--ocean-land); stroke:#6b9ba9; filter:drop-shadow(0 6px 9px #194b6914); }
+[data-theme="light"] .marine-map { filter:none; }
+[data-theme="light"] .marine-map::before { background:radial-gradient(ellipse,#ddf1f7b3,transparent 70%); }
+[data-theme="light"] .ocean-particle-hero { color:#247ba0; }
+[data-theme="light"] .ocean-particle-hero::after { background:linear-gradient(105deg,#f8fcfe33,transparent 58%); }
+[data-theme="light"] :is(.cursor-light,.depth-light,.ocean-noise) { opacity:.25; }
+[data-theme="light"] .brand>span { color:#fff; }
+@media(max-width:700px) { .header-actions .theme-toggle { padding:0; width:44px; height:44px; flex-shrink:0; } }
+@media(prefers-reduced-motion:reduce) {
+  body,body *,body *::before,body *::after { transition:none!important; animation:none!important; }
+}
+[data-theme="light"] .risk-badge.low { background:#e7f4ee; }
+[data-theme="light"] .risk-badge.medium { background:#fbf2da; }
+[data-theme="light"] .risk-badge.high,[data-theme="light"] .risk-badge.veryHigh { background:#fcece9; }

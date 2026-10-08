@@ -59,6 +59,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     uScroll: { value: 0 },
     uTransition: { value: 0 },
     uRisk: { value: current.riskLevel },
+    uLight: { value: document.documentElement.dataset.theme === "light" ? 1 : 0 },
     uDpr: { value: 1 },
     uRipples: { value: ripples },
   };
@@ -249,6 +250,11 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
     host.dataset.mode = "fallback";
     stop();
   };
+  const themeObserver = new MutationObserver(() => {
+    uniforms.uLight.value = document.documentElement.dataset.theme === "light" ? 1 : 0;
+    if (reducedMotion) resume();
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   const resizeObserver = new ResizeObserver(resize);
   const intersectionObserver = new IntersectionObserver(([entry]) => {
     inViewport = entry.isIntersecting;
@@ -282,6 +288,7 @@ export function createOceanScene(host: HTMLDivElement, surface: HTMLElement, ini
       disposed = true;
       stop();
       resizeObserver.disconnect();
+      themeObserver.disconnect();
       intersectionObserver.disconnect();
       surface.removeEventListener("pointermove", onPointer);
       surface.removeEventListener("click", onClick);

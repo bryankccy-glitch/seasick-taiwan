@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit --incremental false",
     "test:product": "node --experimental-strip-types --test tests/user-storage.test.mjs",
     "test:ocean": "node --experimental-strip-types --test tests/ocean-conditions.test.mjs",
-    "test:forecast": "node --experimental-strip-types --test tests/marine-forecast.test.mjs"
+    "test:forecast": "node --experimental-strip-types --test tests/marine-forecast.test.mjs",
+    "test:theme": "node --experimental-strip-types --test tests/theme.test.mjs"
   },
   "dependencies": {
     "class-variance-authority": "0.7.1",

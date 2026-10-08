@@ -8,7 +8,7 @@
   inset:0 -4%;
   overflow:hidden;
   pointer-events:none;
-  color:#82b6b2;
+  color:var(--ocean-accent,#82b6b2);
   contain:layout paint;
   mask-image:linear-gradient(to bottom,transparent 4%,transparent 6%,#000 23%,#000 79%,transparent 100%);
 }
@@ -16,7 +16,7 @@
   content:"";
   position:absolute;
   inset:0;
-  background:linear-gradient(105deg,rgba(5,9,13,.16),transparent 58%);
+  background:linear-gradient(105deg,var(--ocean-surface,rgba(5,9,13,.16)),transparent 58%);
   pointer-events:none;
 }
 .ocean-particle-canvas,.ocean-particle-fallback {
@@ -51,8 +51,8 @@
   letter-spacing:normal;
   line-height:1.08;
   white-space:nowrap;
-  color:#e4f0eb;
-  text-shadow:0 2px 18px #020d12;
+  color:var(--ocean-text,#e4f0eb);
+  text-shadow:0 2px 18px var(--ocean-shadow,#020d12);
 }
 .home-stage .home-intro h1 .hero-greeting:lang(en) {
   font-family:"Inter",system-ui,sans-serif;

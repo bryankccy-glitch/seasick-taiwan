@@ -69,6 +69,7 @@ export const oceanVertexShader = /* glsl */ `
 
 export const oceanFragmentShader = /* glsl */ `
   uniform float uRisk;
+  uniform float uLight;
   uniform float uScroll;
   varying float vHeight;
   varying float vDepth;
@@ -84,6 +85,7 @@ export const oceanFragmentShader = /* glsl */ `
     vec3 peak = mix(vec3(.72, .92, .85), vec3(.74, .86, .81), uRisk / 100.);
     vec3 color = mix(trough, peak, crest);
     color = mix(color, vec3(.72, 1., .95), vRipple * .8);
+    color = mix(color, mix(vec3(.14, .40, .52), vec3(.26, .58, .64), crest), uLight);
     float fog = 1. - smoothstep(32., 78., vDepth);
     float alpha = dash * vEdge * fog * min(.96, .66 + crest * .30 + vInteraction);
     gl_FragColor = vec4(color, alpha * (1. - uScroll));
