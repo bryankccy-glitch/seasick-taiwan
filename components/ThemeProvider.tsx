@@ -27,20 +27,20 @@ function subscribe(callback: () => void) {
     system?.removeEventListener("change", followSystem);
   };
 }
-const ThemeContext = createContext<{theme:Theme;toggle:()=>void}|null>(null);
+const ThemeContext = createContext<{theme:Theme;toggle:(persist?:boolean)=>void}|null>(null);
 export function ThemeProvider({children}:{children:ReactNode}) {
   const theme = useSyncExternalStore<Theme>(subscribe, readTheme, () => "dark");
-  function toggle() {
+  function toggle(persist=true) {
     const next = readTheme() === "dark" ? "light" : "dark";
-    try { localStorage.setItem(THEME_KEY, next); } catch { /* Switching still works when storage is blocked. */ }
+    if(persist)try { localStorage.setItem(THEME_KEY, next); } catch { /* Switching still works when storage is blocked. */ }
     applyTheme(next);
   }
   return <ThemeContext.Provider value={{theme,toggle}}>{children}</ThemeContext.Provider>;
 }
-export function ThemeToggle({language}:{language:"zh"|"en"}) {
+export function ThemeToggle({language,persist=true}:{language:"zh"|"en";persist?:boolean}) {
   const context = useContext(ThemeContext);
   if (!context) throw new Error("ThemeToggle requires ThemeProvider");
-  return <button type="button" className="theme-toggle" onClick={context.toggle} aria-label={language==="zh"?"切換深色／淺色主題":"Toggle dark / light theme"} title={context.theme==="dark"?"Ocean Morning · Light":"Ocean Dark"}>
+  return <button type="button" className="theme-toggle" onClick={()=>context.toggle(persist)} aria-label={language==="zh"?"切換深色／淺色主題":"Toggle dark / light theme"} title={context.theme==="dark"?"Ocean Morning · Light":"Ocean Dark"}>
     <Sun className="theme-sun" aria-hidden="true"/><Moon className="theme-moon" aria-hidden="true"/>
   </button>;
 }

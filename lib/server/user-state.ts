@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import { ports } from "@/lib/ports";
+import { createNewAccountState } from "@/lib/session-state";
 
 const portIds = new Set(ports.map((port) => port.id));
 const tripSchema = z.object({
@@ -23,8 +24,4 @@ export const userStateSchema = z.object({
 });
 
 export type UserStatePayload = z.infer<typeof userStateSchema>;
-export const defaultUserState: UserStatePayload = {
-  favorites: ["keelung", "wushi", "donggang"],
-  trips: [],
-  preferences: { language: "zh", lastPort: "keelung" },
-};
+export const defaultUserState: UserStatePayload = { ...createNewAccountState("zh"), trips:[] };
