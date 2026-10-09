@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { noStoreJson, rateLimit, requestIsSameOrigin } from "@/lib/server/security";
 import { requestOceanAssistant } from "@/lib/server/ocean-assistant";
+import { buildFreeOceanInsight } from "@/lib/ocean-assistant-fallback";
 
 export const runtime="nodejs";
 
@@ -33,10 +34,11 @@ export async function POST(request:Request) {
     if(!parsed.success)return noStoreJson({error:"AI 海洋助理收到的資料格式不完整，請重新整理後再試。",code:"invalid_request"},{status:400});
     const result=await requestOceanAssistant({context:parsed.data.context,language:parsed.data.context.language,messages:parsed.data.messages});
     if(!result.ok){
-      const notConfigured=result.code==="not_configured";
-      return noStoreJson({error:notConfigured?"AI 海洋助理尚未完成服務設定；其他海況功能仍可正常使用。":"AI 海洋助理目前無法取得完整資料，請稍後再試。",code:result.code},{status:notConfigured?503:502});
+      const latestQuestion=[...parsed.data.messages].reverse().find(message=>message.role==="user")?.content;
+      if(latestQuestion)return noStoreJson({message:buildFreeOceanInsight(parsed.data.context,latestQuestion),mode:"insight",providerStatus:result.code});
+      return noStoreJson({error:"AI 海洋助理目前無法取得完整資料，請稍後再試。",code:result.code},{status:502});
     }
-    return noStoreJson({message:result.text});
+    return noStoreJson({message:result.text,mode:"ai"});
   } catch(error) {
     console.error("ocean assistant route failed",{name:error instanceof Error?error.name:"unknown"});
     return noStoreJson({error:"AI 海洋助理目前無法取得完整資料，請稍後再試。",code:"internal_error"},{status:500});
