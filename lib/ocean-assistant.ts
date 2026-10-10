@@ -18,6 +18,13 @@ export type OceanAssistantBrief = {
   detail:string;
 };
 
+export type OceanAssistantHarborForecast = {
+  id:string;
+  name:string;
+  seaArea:string;
+  timeline:OceanAssistantContext["timeline"];
+};
+
 export type OceanAssistantContext = {
   language:Language;
   harbor:{id:string;name:string;county:string;seaArea:string;availableRoutes:string[]};
@@ -36,6 +43,7 @@ export type OceanAssistantContext = {
   risk?:{score:number;level:"low"|"medium"|"high"|"veryHigh";topFactors:{id:string;label:string;points:number}[]};
   bestDeparture?:{time:string;label:string;score:number;level:"low"|"medium"|"high"|"veryHigh"};
   timeline:{time:string;label:string;score:number;level:"low"|"medium"|"high"|"veryHigh";waveHeightM:number;wavePeriodSec:number;windSpeedMs:number}[];
+  harborForecasts?:OceanAssistantHarborForecast[];
   seaLog:{date:string;harbor:string;activity:string;predictedScore:number;actualExperience:"none"|"mild"|"severe"}[];
   oceanBrief?:OceanAssistantBrief;
   source:{provider:"Open-Meteo";queriedAt?:string;scope:string};
@@ -68,6 +76,7 @@ export function buildOceanAssistantContext(input:{
   queriedAt?:string;
   bodyCondition?:OceanAssistantBodyCondition;
   oceanBrief?:OceanAssistantBrief;
+  harborForecasts?:OceanAssistantHarborForecast[];
 }):OceanAssistantContext {
   const {language,port,selected,best}=input;
   const local=(zh:string,en:string)=>language==="zh"?zh:en;
@@ -101,6 +110,7 @@ export function buildOceanAssistantContext(input:{
     ...(selected?{risk:{score:selected.score,level:levelFor(selected.score),topFactors:selected.contributions.slice(0,5).map(item=>({id:item.id,label:local(item.zh,item.en),points:Number(item.points.toFixed(1))}))}}:{}),
     ...(best&&input.bestLabel?{bestDeparture:{time:best.marine.time,label:input.bestLabel,score:best.score,level:levelFor(best.score)}}:{}),
     timeline:input.timeline.map(item=>({time:item.marine.time,label:new Intl.DateTimeFormat(language==="zh"?"zh-TW":"en-GB",{timeZone:"Asia/Taipei",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(item.marine.time)),score:item.score,level:levelFor(item.score),waveHeightM:item.marine.wave,wavePeriodSec:item.marine.period,windSpeedMs:item.marine.wind})),
+    ...(input.harborForecasts?.length?{harborForecasts:input.harborForecasts}:{}),
     seaLog:input.trips.slice(0,6).map(trip=>({
       date:trip.date,
       harbor:input.portLabels[trip.portId]?.[language]??trip.portId,

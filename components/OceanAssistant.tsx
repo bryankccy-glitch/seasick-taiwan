@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Bot, ChevronDown, MessageCircleMore, RotateCcw, Send, Sparkles, Waves, X } from "lucide-react";
 import { withBodyCondition, type OceanAssistantBodyCondition, type OceanAssistantBrief, type OceanAssistantContext, type OceanAssistantMessage } from "@/lib/ocean-assistant";
 import type { Language } from "@/lib/ports";
+import type { SleepCondition } from "@/lib/risk";
 
 export type AssistantLaunchRequest = {id:string;prompt:string;brief?:OceanAssistantBrief};
 export type AssistantHarborOption = {id:string;name:string;seaArea:string};
@@ -35,7 +36,7 @@ function ConditionChoice<T extends string>({label,value,options,onChange}:{label
   return <div className="assistant-condition-row"><span>{label}</span><div>{options.map(option=><button type="button" key={option.value} aria-pressed={value===option.value} onClick={()=>onChange(value===option.value?undefined:option.value)}>{option.label}</button>)}</div></div>;
 }
 
-export function OceanAssistant({context,language,harbors,onHarborChange,launchRequest}:{context:OceanAssistantContext;language:Language;harbors:AssistantHarborOption[];onHarborChange:(id:string)=>void;launchRequest?:AssistantLaunchRequest|null}) {
+export function OceanAssistant({context,language,harbors,onHarborChange,sleepCondition="unknown",onSleepConditionChange,launchRequest}:{context:OceanAssistantContext;language:Language;harbors:AssistantHarborOption[];onHarborChange:(id:string)=>void;sleepCondition?:SleepCondition;onSleepConditionChange?:(value:SleepCondition)=>void;launchRequest?:AssistantLaunchRequest|null}) {
   const c=copy[language];
   const [open,setOpen]=useState(false);
   const [input,setInput]=useState("");
@@ -91,7 +92,7 @@ export function OceanAssistant({context,language,harbors,onHarborChange,launchRe
       <header className="assistant-header"><div className="assistant-avatar"><Waves/><i/></div><div><strong>{c.title}</strong><span>{c.subtitle}{responseMode&&<em className={`assistant-mode ${responseMode}`}>{responseMode==="ai"?c.aiMode:c.insightMode}</em>}</span></div><button type="button" onClick={reset} aria-label={c.reset} title={c.reset}><RotateCcw/></button><button type="button" onClick={()=>setOpen(false)} aria-label={c.close}><X/></button></header>
       <div className="assistant-context"><label><span>{c.harbor}</span><select aria-label={c.harbor} value={context.harbor.id} onChange={event=>onHarborChange(event.target.value)}>{harbors.map(harbor=><option key={harbor.id} value={harbor.id}>{harbor.name} · {harbor.seaArea}</option>)}</select></label><div><span>{c.context}</span><strong>{context.harbor.name}</strong></div><b>{riskSummary}</b></div>
       <details className="assistant-condition"><summary>{c.condition}<ChevronDown/></summary><div className="assistant-condition-grid">
-        <ConditionChoice label={c.sleep} value={bodyCondition.sleep} options={[{value:"good",label:c.good},{value:"insufficient",label:c.poor}]} onChange={sleep=>setBodyCondition(value=>({...value,sleep}))}/>
+        <ConditionChoice label={c.sleep} value={sleepCondition==="unknown"?bodyCondition.sleep:sleepCondition} options={[{value:"good",label:c.good},{value:"insufficient",label:c.poor}]} onChange={sleep=>{setBodyCondition(value=>({...value,sleep}));onSleepConditionChange?.(sleep??"unknown")}}/>
         <ConditionChoice label={c.diet} value={bodyCondition.diet} options={[{value:"balanced",label:c.balanced},{value:"empty",label:c.emptyDiet},{value:"heavy",label:c.heavy}]} onChange={diet=>setBodyCondition(value=>({...value,diet}))}/>
         <ConditionChoice label={c.fatigue} value={bodyCondition.fatigue} options={[{value:"low",label:c.low},{value:"medium",label:c.medium},{value:"high",label:c.high}]} onChange={fatigue=>setBodyCondition(value=>({...value,fatigue}))}/>
       </div></details>

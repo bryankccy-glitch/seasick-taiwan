@@ -10,6 +10,7 @@ function provider(value:unknown):ProviderData {
   return d;
 }
 function numberAt(d:ProviderData,key:string,i:number):number|null {const n=d.hourly[key]?.[i];return typeof n==="number"&&Number.isFinite(n)?n:null;}
+function inRange(value:number|null,min:number,max:number):value is number{return value!==null&&value>=min&&value<=max;}
 export function mergeForecast(marineValue:unknown,weatherValue:unknown,now:number):HarborForecast|null {
   const m=provider(marineValue),w=provider(weatherValue);
   if(m.hourly_units.wave_height!=="m"||m.hourly_units.wave_period!=="s"||w.hourly_units.wind_speed_10m!=="m/s") throw new Error("Unexpected forecast units");
@@ -19,10 +20,13 @@ export function mergeForecast(marineValue:unknown,weatherValue:unknown,now:numbe
     const t=m.hourly.time[i];if(typeof t!=="number"||!Number.isFinite(t)||t<start||t>=start+72*3600)continue;
     const j=winds.get(t);if(j===undefined)continue;
     const wave=numberAt(m,"wave_height",i),period=numberAt(m,"wave_period",i),wind=numberAt(w,"wind_speed_10m",j);
-    if(wave===null||period===null||wind===null||wave<0||period<=0||wind<0)continue;
+    // Reject missing and physically implausible provider values instead of
+    // presenting a sensor/model anomaly as a valid harbor forecast.
+    if(!inRange(wave,0,20)||!inRange(period,.5,40)||!inRange(wind,0,75))continue;
     let current=numberAt(m,"ocean_current_velocity",i);
-    if(current!==null){const unit=m.hourly_units.ocean_current_velocity;if(unit==="km/h")current/=3.6;else if(unit!=="m/s")current=null;if(current!==null&&current<0)current=null;}
-    points.push({time:new Date(t*1000).toISOString(),hour:new Date(t*1000+8*3600000).getUTCHours(),wave,period,wind,current,waveDirection:numberAt(m,"wave_direction",i),windDirection:numberAt(w,"wind_direction_10m",j)});
+    if(current!==null){const unit=m.hourly_units.ocean_current_velocity;if(unit==="km/h")current/=3.6;else if(unit!=="m/s")current=null;if(current!==null&&!inRange(current,0,8))current=null;}
+    const waveDirection=numberAt(m,"wave_direction",i),windDirection=numberAt(w,"wind_direction_10m",j);
+    points.push({time:new Date(t*1000).toISOString(),hour:new Date(t*1000+8*3600000).getUTCHours(),wave,period,wind,current,waveDirection:inRange(waveDirection,0,360)?waveDirection:null,windDirection:inRange(windDirection,0,360)?windDirection:null});
   }
   points.sort((a,b)=>a.time.localeCompare(b.time));
   if(points.length!==72||points.some((p,i)=>Date.parse(p.time)!==(start+i*3600)*1000))return null;

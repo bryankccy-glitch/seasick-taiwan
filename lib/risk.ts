@@ -7,7 +7,7 @@ export const WEIGHTS = [
   { id: "wind", zh: "海面風速", en: "Surface wind", weight: 12 },
   { id: "direction", zh: "風浪方向交互", en: "Wind-wave direction", weight: 7 },
   { id: "current", zh: "潮流與流速", en: "Current and tide", weight: 3 },
-  { id: "uncertainty", zh: "資料不確定性", en: "Data uncertainty", weight: 5 },
+  { id: "sleep", zh: "睡眠狀態", en: "Sleep condition", weight: 5 },
   { id: "vessel", zh: "船型", en: "Vessel type", weight: 10 },
   { id: "personal", zh: "個人敏感度", en: "Personal sensitivity", weight: 10 },
   { id: "duration", zh: "曝露時間", en: "Exposure duration", weight: 5 },
@@ -15,6 +15,7 @@ export const WEIGHTS = [
 
 export type Boat = "small" | "medium" | "large";
 export type Sensitivity = "low" | "medium" | "high";
+export type SleepCondition = "unknown" | "good" | "insufficient";
 
 export type RiskInput = {
   port: Port;
@@ -25,6 +26,7 @@ export type RiskInput = {
   forecasts: Record<string, HarborForecast>;
   range: 24 | 72;
   activityAdjustment?: number;
+  sleep?: SleepCondition;
 };
 
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
@@ -38,13 +40,12 @@ export function calculateRisk(input: RiskInput) {
   const angle = marine.waveDirection !== null && marine.windDirection !== null ? Math.abs(((marine.waveDirection - marine.windDirection + 540) % 360) - 180) : null;
   const direction = angle === null ? 0 : angle / 180;
   const current = marine.current === null ? 0 : clamp((marine.current - .15) / 1.05);
-  // The provider supplies no calibrated confidence. Exclude that factor.
-  const uncertainty = 0;
+  const sleep = input.sleep === "insufficient" ? .85 : input.sleep === "good" ? .08 : 0;
   const vessel = input.boat === "small" ? .92 : input.boat === "large" ? .24 : .56;
   const personal = input.sensitivity === "high" ? .92 : input.sensitivity === "low" ? .18 : .56;
   const duration = clamp((input.duration - 30) / 210);
-  const normalized: Record<string, number> = { wave, period, wind, direction, current, uncertainty, vessel, personal, duration };
-  const contributions = WEIGHTS.filter(item => item.id !== "uncertainty" && (item.id !== "current" || marine.current !== null) && (item.id !== "direction" || angle !== null)).map((item) => ({
+  const normalized: Record<string, number> = { wave, period, wind, direction, current, sleep, vessel, personal, duration };
+  const contributions = WEIGHTS.filter(item => (item.id !== "sleep" || (input.sleep && input.sleep !== "unknown")) && (item.id !== "current" || marine.current !== null) && (item.id !== "direction" || angle !== null)).map((item) => ({
     ...item,
     value: normalized[item.id],
     points: normalized[item.id] * item.weight,
@@ -62,7 +63,7 @@ export function buildTimeline(input: Omit<RiskInput, "hourIndex">) {
   }).filter((reading): reading is NonNullable<typeof reading> => reading !== null);
 }
 
-export function riskLevel(score: number) {
+export function riskLevel(score: number):"low"|"medium"|"high"|"veryHigh" {
   if (score < 30) return "low";
   if (score < 60) return "medium";
   if (score < 80) return "high";

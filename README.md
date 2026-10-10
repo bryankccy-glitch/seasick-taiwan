@@ -2,7 +2,7 @@
 
 台灣港口與海域導向的暈船風險與最佳出海時間決策平台。使用者可依港口、活動、船型、出海時間與個人敏感度，取得可解釋的相對風險分數、主要影響因子與舒適時段建議。
 
-- Website（Vercel）：<https://seasick-taiwan.vercel.app/>
+- Website（Vercel）：<https://seasick-taiwan-github.vercel.app/>
 - Source / Portfolio：<https://github.com/bryankccy-glitch/seasick-taiwan>
 - 正式分支：`main`
 - 安全政策：[SECURITY.md](./SECURITY.md)
@@ -31,6 +31,8 @@ npm run build
 - 台灣 13 個港口的互動地圖、搜尋與港口／海域對應。
 - Open-Meteo 24h／72h 海況預報、即時刷新狀態與最佳出海時點。
 - 可解釋的暈船相對風險分數、波高／風速／週期與個人航程條件。
+- SeaSick AI 可依目前或問題中指定的港口、日期、預報時段與個人條件回答，並支援跨港比較；付費模型不可用時仍有規則式免費解讀。
+- 結果曲線可切換暈船風險、浪高與風速；資料與互動狀態皆保留缺值，不用展示數值補齊。
 - 深海／晨光雙主題、中英切換、收藏港口與航海紀錄。
 - Supabase 姓名＋密碼註冊／登入；名稱正規化後不可重複。
 - 收藏、航海紀錄、語言與最後港口依使用者帳號同步。
@@ -55,6 +57,7 @@ npm run build
 ## 海況 API
 
 - `/api/marine` 在伺服器端取得海況與風場，快取 10 分鐘。
+- 核心值會經單位、連續 72 小時時間軸與合理範圍檢查；不合理或不完整資料直接標示無法取得。
 - 目前支援地圖上已有座標的 13 個港口；其他港口顯示無預報。潮汐與信心百分比尚無資料。
 - Open-Meteo 免費端點限非商業用途；商業營運需使用付費方案。
 - 此 API 需要 Next.js 伺服器，請部署至 Vercel；GitHub Pages 無法提供動態 API。
@@ -80,6 +83,7 @@ git revert <commit-id>
 - `components/auth-screen.tsx`：登入／註冊介面
 - `lib/ports.ts`：港口、航線與海域資料
 - `lib/risk.ts`：可解釋風險權重與時間序列模型
+- `lib/ocean-assistant*.ts`：結構化海況 context、免費規則解讀與安全的模型提示詞
 - `lib/taiwan-map.ts`：台灣海岸與港口地圖資料
 - `lib/server/`：Session、Supabase 存取、安全檢查與狀態驗證
 - `supabase/migrations/`：資料表、RLS 與 RPC migration

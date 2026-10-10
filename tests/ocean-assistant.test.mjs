@@ -84,3 +84,36 @@ test("free insight uses optional body state and remains non-diagnostic",()=>{
   assert.match(answer,/睡眠: insufficient/);
   assert.match(answer,/不是醫療診斷/);
 });
+
+test("free insight compares two named harbors from real forecast context",()=>{
+  const value=context();
+  const base=value.timeline[0];
+  value.harborForecasts=[
+    {id:"keelung",name:"基隆港",seaArea:"基隆港外海",timeline:[{...base,score:38,waveHeightM:.8,windSpeedMs:3.2}]},
+    {id:"hualien",name:"花蓮港",seaArea:"花蓮賞鯨近海",timeline:[{...base,score:64,waveHeightM:1.5,windSpeedMs:5.4}]},
+  ];
+  const answer=buildFreeOceanInsight(value,"基隆港與花蓮港哪個海況較平穩？");
+  assert.match(answer,/基隆港在可用預報時段中相對平穩/);
+  assert.match(answer,/38\/100/);
+  assert.match(answer,/64\/100/);
+  assert.match(answer,/Open-Meteo/);
+});
+
+test("free insight does not claim a winner when harbor scores are effectively tied",()=>{
+  const value=context();
+  const base=value.timeline[0];
+  value.harborForecasts=[
+    {id:"keelung",name:"基隆港",seaArea:"基隆港外海",timeline:[{...base,score:47}]},
+    {id:"hualien",name:"花蓮港",seaArea:"花蓮賞鯨近海",timeline:[{...base,score:48}]},
+  ];
+  const answer=buildFreeOceanInsight(value,"基隆港與花蓮港哪個較平穩？");
+  assert.match(answer,/很接近，沒有明顯差異/);
+  assert.doesNotMatch(answer,/基隆港在可用預報時段中相對平穩/);
+});
+
+test("free insight gives conservative first-trip preparation without inventing safety",()=>{
+  const answer=buildFreeOceanInsight(context(),"第一次搭船需要準備什麼？");
+  assert.match(answer,/充足睡眠/);
+  assert.match(answer,/官方、船公司及船長/);
+  assert.doesNotMatch(answer,/100% 安全|一定安全/);
+});

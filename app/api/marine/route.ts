@@ -29,7 +29,7 @@ export async function GET() {
       } catch { result.unavailable.push(port.id); }
     });
     if (!Object.keys(result.forecasts).length) throw new Error("No complete forecast available");
-    return NextResponse.json(result,{headers:{"Cache-Control":"no-store"}});
+    return NextResponse.json(result,{headers:{"Cache-Control":"public, s-maxage=600, stale-while-revalidate=60"}});
   } catch {
     return NextResponse.json({error:"海況預報暫時無法取得，請稍後重試。"},{status:502,headers:{"Cache-Control":"no-store"}});
   }
