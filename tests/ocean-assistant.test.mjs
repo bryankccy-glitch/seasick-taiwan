@@ -49,9 +49,21 @@ test("OpenAI response extraction accepts output text and rejects empty payloads"
 
 test("free insight explains real risk factors without inventing tide data",()=>{
   const answer=buildFreeOceanInsight(context(),"為什麼今天暈船風險高？");
+  assert.match(answer,/花蓮港/);
   assert.match(answer,/72\/100/);
   assert.match(answer,/浪高|示性波高/);
   assert.doesNotMatch(answer,/潮高|滿潮|乾潮/);
+});
+
+test("free insight identifies the selected harbor and changes with harbor context",()=>{
+  const hualien=context();
+  const keelung={...hualien,harbor:{id:"keelung",name:"基隆港",county:"基隆市",seaArea:"基隆港外海",availableRoutes:["基隆嶼航線"]},ocean:{...hualien.ocean,waveHeightM:.8,windSpeedMs:3.1},risk:{...hualien.risk,score:46,level:"medium"}};
+  const hualienAnswer=buildFreeOceanInsight(hualien,"為什麼今天暈船風險高？");
+  const keelungAnswer=buildFreeOceanInsight(keelung,"為什麼今天暈船風險高？");
+  assert.match(hualienAnswer,/花蓮港（花蓮賞鯨近海）/);
+  assert.match(keelungAnswer,/基隆港（基隆港外海）/);
+  assert.match(keelungAnswer,/46\/100/);
+  assert.notEqual(hualienAnswer,keelungAnswer);
 });
 
 test("free insight compares supplied forecast points and chooses the lower score",()=>{

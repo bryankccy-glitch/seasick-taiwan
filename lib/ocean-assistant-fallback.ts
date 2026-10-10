@@ -3,6 +3,10 @@ import type { OceanAssistantContext } from "@/lib/ocean-assistant";
 type TimelinePoint=OceanAssistantContext["timeline"][number];
 const levels={low:"低",medium:"中",high:"高",veryHigh:"很高"} as const;
 
+function harborLabel(context:OceanAssistantContext,zh:boolean){
+  return zh?`${context.harbor.name}（${context.harbor.seaArea}）`:`${context.harbor.name} (${context.harbor.seaArea})`;
+}
+
 function hourInTaiwan(time:string){
   return Number(new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Taipei",hour:"2-digit",hourCycle:"h23"}).format(new Date(time)));
 }
@@ -31,8 +35,8 @@ function compareTimes(context:OceanAssistantContext,question:string,zh:boolean){
   const best=a.score<=b.score?a:b;
   const difference=Math.abs(a.score-b.score);
   return zh
-    ? `**${best.label}相對較適合。**\n\n- ${pointLine(a,true)}\n- ${pointLine(b,true)}\n\n兩個時段的風險相差 ${difference} 分。系統同時比較浪高、週期與風速；潮汐資料目前未接入，因此沒有納入判讀。`
-    : `**${best.label} is relatively more suitable.**\n\n- ${pointLine(a,false)}\n- ${pointLine(b,false)}\n\nThe risk scores differ by ${difference} points. Wave height, period and wind were compared together. Tide data is unavailable and was not used.`;
+    ? `**${harborLabel(context,true)}：${best.label}相對較適合。**\n\n- ${pointLine(a,true)}\n- ${pointLine(b,true)}\n\n兩個時段的風險相差 ${difference} 分。系統同時比較浪高、週期與風速；潮汐資料目前未接入，因此沒有納入判讀。`
+    : `**${harborLabel(context,false)}: ${best.label} is relatively more suitable.**\n\n- ${pointLine(a,false)}\n- ${pointLine(b,false)}\n\nThe risk scores differ by ${difference} points. Wave height, period and wind were compared together. Tide data is unavailable and was not used.`;
 }
 
 function seaLogNote(context:OceanAssistantContext,zh:boolean){
@@ -49,8 +53,8 @@ function explainRisk(context:OceanAssistantContext,zh:boolean){
   const body=[c.sleep==="insufficient"?(zh?"睡眠不足":"insufficient sleep"):null,c.diet==="empty"?(zh?"空腹":"empty stomach"):c.diet==="heavy"?(zh?"飲食過量":"heavy meal"):null,c.fatigue==="high"?(zh?"疲勞程度高":"high fatigue"):null].filter(Boolean);
   const sensitivity=zh?(c.motionSicknessSensitivity==="high"?"高":c.motionSicknessSensitivity==="medium"?"中":"低"):c.motionSicknessSensitivity;
   return zh
-    ? `**目前風險：${levels[context.risk.level]}（${context.risk.score}/100）**\n\n**主要原因**\n${factors.map((factor,index)=>`${index+1}. ${factor.label}：+${factor.points.toFixed(1)} 分`).join("\n")}\n\n目前浪高 ${context.ocean.waveHeightM.toFixed(1)} m、週期 ${context.ocean.wavePeriodSec.toFixed(1)} 秒、風速 ${context.ocean.windSpeedMs.toFixed(1)} m/s，搭配 ${context.trip.durationMinutes} 分鐘航程與${sensitivity}敏感度${body.length?`；另外需注意${body.join("、")}`:""}。這是相對風險判讀，不是醫療診斷。${seaLogNote(context,true)}`
-    : `**Current risk: ${context.risk.level} (${context.risk.score}/100)**\n\n**Main factors**\n${factors.map((factor,index)=>`${index+1}. ${factor.label}: +${factor.points.toFixed(1)} points`).join("\n")}\n\nCurrent conditions are ${context.ocean.waveHeightM.toFixed(1)} m waves, a ${context.ocean.wavePeriodSec.toFixed(1)} s period and ${context.ocean.windSpeedMs.toFixed(1)} m/s wind, combined with a ${context.trip.durationMinutes}-minute trip and ${sensitivity} sensitivity${body.length?`; also note ${body.join(", ")}`:""}. This is relative decision support, not a diagnosis.${seaLogNote(context,false)}`;
+    ? `**${harborLabel(context,true)}目前風險：${levels[context.risk.level]}（${context.risk.score}/100）**\n\n**主要原因**\n${factors.map((factor,index)=>`${index+1}. ${factor.label}：+${factor.points.toFixed(1)} 分`).join("\n")}\n\n目前浪高 ${context.ocean.waveHeightM.toFixed(1)} m、週期 ${context.ocean.wavePeriodSec.toFixed(1)} 秒、風速 ${context.ocean.windSpeedMs.toFixed(1)} m/s，搭配 ${context.trip.durationMinutes} 分鐘航程與${sensitivity}敏感度${body.length?`；另外需注意${body.join("、")}`:""}。這是相對風險判讀，不是醫療診斷。${seaLogNote(context,true)}`
+    : `**${harborLabel(context,false)} current risk: ${context.risk.level} (${context.risk.score}/100)**\n\n**Main factors**\n${factors.map((factor,index)=>`${index+1}. ${factor.label}: +${factor.points.toFixed(1)} points`).join("\n")}\n\nCurrent conditions are ${context.ocean.waveHeightM.toFixed(1)} m waves, a ${context.ocean.wavePeriodSec.toFixed(1)} s period and ${context.ocean.windSpeedMs.toFixed(1)} m/s wind, combined with a ${context.trip.durationMinutes}-minute trip and ${sensitivity} sensitivity${body.length?`; also note ${body.join(", ")}`:""}. This is relative decision support, not a diagnosis.${seaLogNote(context,false)}`;
 }
 
 function recommendTime(context:OceanAssistantContext,zh:boolean){
@@ -58,8 +62,8 @@ function recommendTime(context:OceanAssistantContext,zh:boolean){
   if(!best)return zh?"目前沒有足夠的預報時段可以選出最佳時間。":"There are not enough forecast points to choose a best time.";
   const point=context.timeline.find(item=>item.time===best.time);
   return zh
-    ? `**目前相對推薦 ${best.label}。**\n\n風險 ${best.score}/100（${levels[best.level]}）${point?`，浪高 ${point.waveHeightM.toFixed(1)} m、風速 ${point.windSpeedMs.toFixed(1)} m/s`:""}。這是目前預報範圍內相對平穩的選擇，不代表保證不會暈船，也不能取代船公司或官方公告。`
-    : `**The relatively preferred window is ${best.label}.**\n\nRisk is ${best.score}/100 (${best.level})${point?`, with ${point.waveHeightM.toFixed(1)} m waves and ${point.windSpeedMs.toFixed(1)} m/s wind`:""}. It is the calmer available option, not a guarantee or a replacement for official sailing notices.`;
+    ? `**${harborLabel(context,true)}目前相對推薦 ${best.label}。**\n\n風險 ${best.score}/100（${levels[best.level]}）${point?`，浪高 ${point.waveHeightM.toFixed(1)} m、風速 ${point.windSpeedMs.toFixed(1)} m/s`:""}。這是目前預報範圍內相對平穩的選擇，不代表保證不會暈船，也不能取代船公司或官方公告。`
+    : `**For ${harborLabel(context,false)}, the relatively preferred window is ${best.label}.**\n\nRisk is ${best.score}/100 (${best.level})${point?`, with ${point.waveHeightM.toFixed(1)} m waves and ${point.windSpeedMs.toFixed(1)} m/s wind`:""}. It is the calmer available option, not a guarantee or a replacement for official sailing notices.`;
 }
 
 function explainBody(context:OceanAssistantContext,zh:boolean){
@@ -79,7 +83,7 @@ export function buildFreeOceanInsight(context:OceanAssistantContext,question:str
   if(/最好|推薦|適合.*時間|best|recommend|when/.test(q))return recommendTime(context,zh);
   if(/身體|睡|疲勞|空腹|飲食|body|sleep|fatigue|food/.test(q))return explainBody(context,zh);
   if(/浪|風速|週期|wave|wind|period/.test(q)&&context.ocean)return zh
-    ? `目前浪高 ${context.ocean.waveHeightM.toFixed(1)} m、週期 ${context.ocean.wavePeriodSec.toFixed(1)} 秒、風速 ${context.ocean.windSpeedMs.toFixed(1)} m/s。浪高影響晃動幅度，週期影響晃動節奏，風會影響海面凌亂程度；系統會把三者與船型、航程和個人敏感度一起計算，而不是只看單一數值。`
-    : `Current conditions are ${context.ocean.waveHeightM.toFixed(1)} m waves, a ${context.ocean.wavePeriodSec.toFixed(1)} s period and ${context.ocean.windSpeedMs.toFixed(1)} m/s wind. The score combines these with vessel, duration and sensitivity rather than relying on one reading.`;
+    ? `${harborLabel(context,true)}目前浪高 ${context.ocean.waveHeightM.toFixed(1)} m、週期 ${context.ocean.wavePeriodSec.toFixed(1)} 秒、風速 ${context.ocean.windSpeedMs.toFixed(1)} m/s。浪高影響晃動幅度，週期影響晃動節奏，風會影響海面凌亂程度；系統會把三者與船型、航程和個人敏感度一起計算，而不是只看單一數值。`
+    : `${harborLabel(context,false)} currently has ${context.ocean.waveHeightM.toFixed(1)} m waves, a ${context.ocean.wavePeriodSec.toFixed(1)} s period and ${context.ocean.windSpeedMs.toFixed(1)} m/s wind. The score combines these with vessel, duration and sensitivity rather than relying on one reading.`;
   return explainRisk(context,zh);
 }
