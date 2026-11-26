@@ -2,10 +2,27 @@
 
 台灣港口與海域導向的暈船風險與最佳出海時間決策平台。使用者可依港口、活動、船型、出海時間與個人敏感度，取得可解釋的相對風險分數、主要影響因子與舒適時段建議。
 
-- Website（Vercel）：<https://seasick-taiwan-github.vercel.app/>
+- Website（Vercel）：<https://seasick-taiwan.vercel.app/>
 - Source / Portfolio：<https://github.com/bryankccy-glitch/seasick-taiwan>
 - 正式分支：`main`
 - 安全政策：[SECURITY.md](./SECURITY.md)
+
+## 為什麼做這個
+
+出海賞鯨、搭船去離島，最怕的就是一上船就暈。氣象預報只告訴你浪高幾公尺，卻沒告訴你「對**你**來說，這個時間、這條航線、這種船會不會暈」。SeaSick Taiwan 把海象、航線、船型和個人體質換算成一個看得懂的風險分數，並建議比較舒服的出發時段。
+
+## 專案亮點
+
+| 亮點 | 說明 |
+|---|---|
+| 可解釋的風險模型 | 不是黑盒子：每個分數都列出主要影響因子，使用者知道為什麼會暈 |
+| 在地資料 | 台灣港口、航線與海域資料，搭配台灣海岸地圖 |
+| 個人化 | 依活動、船型與個人敏感度調整風險，給出舒適時段建議 |
+| 帳號與同步 | 註冊登入後，收藏港口與航海紀錄跨裝置同步 |
+| 安全設計 | 密碼 bcrypt 雜湊、HttpOnly Cookie、Supabase RLS，金鑰只放伺服器端 |
+| 測試 | 型別檢查、ESLint、預報／海象／產品流程測試與安全稽核指令 |
+
+**技術棧**：Next.js · React · TypeScript · Tailwind CSS · Recharts · Supabase · Vercel
 
 ## 本機開發
 
